@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.anca.exchange_rate.api.ERResponse;
-import com.anca.exchange_rate.api.ExchangeRate;
 import com.anca.exchange_rate.api.ExchangeRateService;
 import com.anca.exchange_rate.utils.ApiUtils;
 
@@ -18,12 +17,12 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class TempActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_temp);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ExchangeRateService.YAHOO_BASE_URL)

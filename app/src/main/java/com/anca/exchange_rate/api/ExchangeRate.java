@@ -15,6 +15,8 @@ public class ExchangeRate {
     @Element(name = "Rate")
     private double rate;
 
+    public ExchangeRate() {}
+
     public ExchangeRate(String name, double rate) {
         this.name = name;
         this.rate = rate;

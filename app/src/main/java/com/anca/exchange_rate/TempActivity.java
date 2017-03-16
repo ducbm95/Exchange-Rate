@@ -24,18 +24,19 @@ public class TempActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_temp);
 
+        List<String> toCurrency = new ArrayList<>();
+        toCurrency.add("EUR");
+        String query = ApiUtils.buildQuery("USD", toCurrency);
+        Log.d("QUERY", query);
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ExchangeRateService.YAHOO_BASE_URL)
                 .addConverterFactory(SimpleXmlConverterFactory.create())
                 .build();
         ExchangeRateService service = retrofit.create(ExchangeRateService.class);
+        Call<ERResponse> call = service.getExchangeRate(query, ExchangeRateService.YAHOO_ENV);
 
-        List<String> fromRate = new ArrayList<>();
-        fromRate.add("EUR");
-        String query = ApiUtils.buildQuery("USD", fromRate);
-        Call<ERResponse> lstExchangeRate = service.getExchangeRate(query, ExchangeRateService.YAHOO_ENV);
-
-        lstExchangeRate.enqueue(new Callback<ERResponse>() {
+        call.enqueue(new Callback<ERResponse>() {
             @Override
             public void onResponse(Call<ERResponse> call, Response<ERResponse> response) {
                 Log.d("RESPONSE", "response OK");
@@ -44,7 +45,9 @@ public class TempActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ERResponse> call, Throwable t) {
-                Log.d("RESPONSE", "response failure");
+                Log.d("RESPONSE", "response failure" + t.toString());
+
+//                call.
             }
         });
     }

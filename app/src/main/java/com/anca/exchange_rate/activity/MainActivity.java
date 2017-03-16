@@ -1,13 +1,10 @@
 package com.anca.exchange_rate.activity;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -17,24 +14,36 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.anca.exchange_rate.R;
 import com.anca.exchange_rate.adapter.ExRateDataAdapter;
+import com.anca.exchange_rate.api.ERResponse;
 import com.anca.exchange_rate.api.ExchangeRate;
+import com.anca.exchange_rate.api.ExchangeRateService;
+import com.anca.exchange_rate.utils.ApiUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private static final String BASE_CURRENCY_UNIT = "USD";
+
     private TextView tvCurrentUnit;
+    private FloatingActionButton btnChangeUnit;
+    private FloatingActionButton fab;
+
+    private List<ExchangeRate> lstExRate = new ArrayList<>();
+    private ExRateDataAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,15 +53,21 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         tvCurrentUnit = (TextView) findViewById(R.id.tv_current_unit);
+        btnChangeUnit = (FloatingActionButton) findViewById(R.id.btn_change_unit);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        btnChangeUnit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showChangeCurrencyUnitDialog();
+            }
+        });
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                loadExchangeRate();
 
-                showDialog();
             }
         });
 
@@ -70,20 +85,8 @@ public class MainActivity extends AppCompatActivity
 
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rv.setLayoutManager(llm);
-
-        List<ExchangeRate> lstExRate = new ArrayList<>();
-        lstExRate.add(new ExchangeRate("VND", 1000));
-        lstExRate.add(new ExchangeRate("VND", 1000));
-        lstExRate.add(new ExchangeRate("VND", 1000));
-        lstExRate.add(new ExchangeRate("VND", 1000));
-        lstExRate.add(new ExchangeRate("VND", 1000));
-        lstExRate.add(new ExchangeRate("VND", 1000));
-        lstExRate.add(new ExchangeRate("VND", 1000));
-        lstExRate.add(new ExchangeRate("VND", 1000));
-        lstExRate.add(new ExchangeRate("VND", 1000));
-        lstExRate.add(new ExchangeRate("VND", 1000));
-        ExRateDataAdapter adapter = new ExRateDataAdapter(lstExRate);
-        rv.setAdapter(adapter);
+        mAdapter = new ExRateDataAdapter(lstExRate);
+        rv.setAdapter(mAdapter);
     }
 
     @Override
@@ -143,7 +146,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void showDialog() {
+    private void showChangeCurrencyUnitDialog() {
         List<String> lstCurrencyUnit = new ArrayList<>();
         lstCurrencyUnit.add("USD");
         lstCurrencyUnit.add("VND");
@@ -163,4 +166,41 @@ public class MainActivity extends AppCompatActivity
                 .positiveText("Change")
                 .show();
     }
+
+    private void loadExchangeRate() {
+
+        final MaterialDialog dialog = new MaterialDialog.Builder(this)
+                .title("Loading data...")
+                .progress(true, 0)
+                .progressIndeterminateStyle(true)
+                .show();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ExchangeRateService.YAHOO_BASE_URL)
+                .addConverterFactory(SimpleXmlConverterFactory.create())
+                .build();
+        ExchangeRateService service = retrofit.create(ExchangeRateService.class);
+
+        List<String> fromRate = new ArrayList<>();
+        fromRate.add("EUR");
+        String query = ApiUtils.buildQuery("USD", fromRate);
+        final Call<ERResponse> lstExchangeRate = service.getExchangeRate(query, ExchangeRateService.YAHOO_ENV);
+
+        lstExchangeRate.enqueue(new Callback<ERResponse>() {
+            @Override
+            public void onResponse(Call<ERResponse> call, Response<ERResponse> response) {
+                Log.d("RESPONSE", "response OK");
+                lstExRate.clear();
+                lstExRate.addAll(response.body().getLstExchangeRate());
+                mAdapter.notifyDataSetChanged();
+                dialog.dismiss();
+            }
+
+            @Override
+            public void onFailure(Call<ERResponse> call, Throwable t) {
+                Log.d("RESPONSE", "response failure");
+            }
+        });
+    }
+
 }

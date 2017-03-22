@@ -6,4 +6,44 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+
+    <string-array name="lst_currency">
+        <item>USD</item>
+        <item>EUR</item>
+        <item>JPY</item>
+        <item>BGN</item>
+        <item>CZK</item>
+        <item>DKK</item>
+        <item>GBP</item>
+        <item>HUF</item>
+        <item>LTL</item>
+        <item>LVL</item>
+        <item>PLN</item>
+        <item>RON</item>
+        <item>SEK</item>
+        <item>CHF</item>
+        <item>NOK</item>
+        <item>HRK</item>
+        <item>RUB</item>
+        <item>TRY</item>
+        <item>AUD</item>
+        <item>BRL</item>
+        <item>CAD</item>
+        <item>CNY</item>
+        <item>HKD</item>
+        <item>IDR</item>
+        <item>ILS</item>
+        <item>INR</item>
+        <item>KRW</item>
+        <item>MXN</item>
+        <item>MYR</item>
+        <item>NZD</item>
+        <item>PHP</item>
+        <item>SGD</item>
+        <item>THB</item>
+        <item>ZAR</item>
+        <item>ISK</item>
+        <item>VND</item>
+    </string-array>
+    <string name="title_activity_exchange">ExchangeActivity</string>
 </resources>

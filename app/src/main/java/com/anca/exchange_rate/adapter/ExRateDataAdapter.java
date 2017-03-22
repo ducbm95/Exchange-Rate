@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.anca.exchange_rate.R;
 import com.anca.exchange_rate.api.ExchangeRate;
+import com.anca.exchange_rate.utils.ApiUtils;
 
 import java.util.List;
 
@@ -21,9 +22,15 @@ import java.util.List;
 public class ExRateDataAdapter extends RecyclerView.Adapter<ExRateDataAdapter.ERDataViewHolder> {
 
     private List<ExchangeRate> lstExRate;
+    private double mValue;
 
-    public ExRateDataAdapter(List<ExchangeRate> data) {
+    public ExRateDataAdapter(List<ExchangeRate> data, double value) {
         this.lstExRate = data;
+        this.mValue = value;
+    }
+
+    public void updateValue(double v) {
+        this.mValue = v;
     }
 
     @Override
@@ -37,8 +44,13 @@ public class ExRateDataAdapter extends RecyclerView.Adapter<ExRateDataAdapter.ER
     public void onBindViewHolder(ERDataViewHolder holder, int position) {
         ExchangeRate exRate = this.lstExRate.get(position);
 
-        holder.tvValue.setText(String.valueOf(exRate.getRate()));
-        holder.tvUnit.setText(exRate.getName());
+        holder.tvValue.setText(String.valueOf(ApiUtils.round(exRate.getRate() * mValue, 4)));
+        holder.tvUnit.setText(String.valueOf(exRate.getRate()) + " " + exRate.getName());
+        holder.tvUnit2.setText(exRate.getName().substring(4, 7));
+
+        TextDrawable drawable = TextDrawable.builder()
+                .buildRect(String.valueOf(exRate.getName().charAt(4)), Color.RED);
+        holder.icon.setImageDrawable(drawable);
     }
 
     @Override
@@ -46,20 +58,21 @@ public class ExRateDataAdapter extends RecyclerView.Adapter<ExRateDataAdapter.ER
         return this.lstExRate.size();
     }
 
+
     public static class ERDataViewHolder extends RecyclerView.ViewHolder {
 
         ImageView icon;
         TextView tvValue;
         TextView tvUnit;
+        TextView tvUnit2;
 
         public ERDataViewHolder(View itemView) {
             super(itemView);
-            TextDrawable drawable = TextDrawable.builder()
-                    .buildRect("A", Color.RED);
+
             icon = (ImageView) itemView.findViewById(R.id.item_icon);
-            icon.setImageDrawable(drawable);
             tvValue = (TextView) itemView.findViewById(R.id.item_value);
             tvUnit = (TextView) itemView.findViewById(R.id.item_unit);
+            tvUnit2 = (TextView) itemView.findViewById(R.id.item_unit_2);
         }
     }
 }

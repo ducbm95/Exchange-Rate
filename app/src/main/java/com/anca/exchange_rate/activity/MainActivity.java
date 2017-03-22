@@ -1,5 +1,6 @@
 package com.anca.exchange_rate.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -25,6 +27,7 @@ import com.anca.exchange_rate.api.ExchangeRateService;
 import com.anca.exchange_rate.utils.ApiUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import retrofit2.Call;
@@ -36,14 +39,16 @@ import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private static final String BASE_CURRENCY_UNIT = "USD";
+    private static String BASE_CURRENCY_UNIT = "USD";
 
     private TextView tvCurrentUnit;
     private FloatingActionButton btnChangeUnit;
     private FloatingActionButton fab;
+    private EditText edtValue;
 
     private List<ExchangeRate> lstExRate = new ArrayList<>();
     private ExRateDataAdapter mAdapter;
+    private double mValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +60,7 @@ public class MainActivity extends AppCompatActivity
         tvCurrentUnit = (TextView) findViewById(R.id.tv_current_unit);
         btnChangeUnit = (FloatingActionButton) findViewById(R.id.btn_change_unit);
         fab = (FloatingActionButton) findViewById(R.id.fab);
+        edtValue = (EditText) findViewById(R.id.edt_value);
 
         btnChangeUnit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,7 +91,7 @@ public class MainActivity extends AppCompatActivity
 
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rv.setLayoutManager(llm);
-        mAdapter = new ExRateDataAdapter(lstExRate);
+        mAdapter = new ExRateDataAdapter(lstExRate, Double.valueOf(edtValue.getText().toString()));
         rv.setAdapter(mAdapter);
     }
 
@@ -112,9 +118,12 @@ public class MainActivity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
+//
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_switch) {
+            Intent intent = new Intent(this, ExchangeActivity.class);
+            startActivity(intent);
+            overridePendingTransition(R.anim.open_anim, R.anim.no_change_anim);
             return true;
         }
 
@@ -130,7 +139,9 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_camera) {
             // Handle the camera action
         } else if (id == R.id.nav_gallery) {
-
+            Intent intent = new Intent(this, ExchangeActivity.class);
+            startActivity(intent);
+            overridePendingTransition(R.anim.open_anim, R.anim.no_change_anim);
         } else if (id == R.id.nav_slideshow) {
 
         } else if (id == R.id.nav_manage) {
@@ -141,20 +152,23 @@ public class MainActivity extends AppCompatActivity
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+//        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
     private void showChangeCurrencyUnitDialog() {
         List<String> lstCurrencyUnit = new ArrayList<>();
-        lstCurrencyUnit.add("USD");
-        lstCurrencyUnit.add("VND");
+        String[] lstCurrency = getResources().getStringArray(R.array.lst_currency);
+        lstCurrencyUnit.addAll(Arrays.asList(lstCurrency));
 
         MaterialDialog.ListCallbackSingleChoice callback = new MaterialDialog.ListCallbackSingleChoice() {
             @Override
             public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                tvCurrentUnit.setText(text);
+                if (text != null) {
+                    tvCurrentUnit.setText(text);
+                    BASE_CURRENCY_UNIT = text.toString();
+                }
                 return true;
             }
         };
@@ -162,9 +176,10 @@ public class MainActivity extends AppCompatActivity
         new MaterialDialog.Builder(this)
                 .title("Choose base currency unit")
                 .items(lstCurrencyUnit)
-                .itemsCallbackSingleChoice(2, callback)
+                .itemsCallbackSingleChoice(-1, callback)
                 .positiveText("Change")
                 .show();
+
     }
 
     private void loadExchangeRate() {
@@ -181,9 +196,11 @@ public class MainActivity extends AppCompatActivity
                 .build();
         ExchangeRateService service = retrofit.create(ExchangeRateService.class);
 
-        List<String> fromRate = new ArrayList<>();
-        fromRate.add("EUR");
-        String query = ApiUtils.buildQuery("USD", fromRate);
+        List<String> toCurrency = new ArrayList<>();
+        String[] lstCurrency = getResources().getStringArray(R.array.lst_currency);
+        toCurrency.addAll(Arrays.asList(lstCurrency));
+
+        String query = ApiUtils.buildQuery(BASE_CURRENCY_UNIT, toCurrency);
         final Call<ERResponse> lstExchangeRate = service.getExchangeRate(query, ExchangeRateService.YAHOO_ENV);
 
         lstExchangeRate.enqueue(new Callback<ERResponse>() {
@@ -192,6 +209,7 @@ public class MainActivity extends AppCompatActivity
                 Log.d("RESPONSE", "response OK");
                 lstExRate.clear();
                 lstExRate.addAll(response.body().getLstExchangeRate());
+                mAdapter.updateValue(Double.valueOf(edtValue.getText().toString()));
                 mAdapter.notifyDataSetChanged();
                 dialog.dismiss();
             }

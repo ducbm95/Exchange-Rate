@@ -44,7 +44,7 @@ public class ExRateDataAdapter extends RecyclerView.Adapter<ExRateDataAdapter.ER
     public void onBindViewHolder(ERDataViewHolder holder, int position) {
         ExchangeRate exRate = this.lstExRate.get(position);
 
-        holder.tvValue.setText(String.valueOf(ApiUtils.round(exRate.getRate() * mValue, 4)));
+        holder.tvValue.setText(String.valueOf(ApiUtils.round(exRate.getRate() * mValue, 5)));
         holder.tvUnit.setText(String.valueOf(exRate.getRate()) + " " + exRate.getName());
         holder.tvUnit2.setText(exRate.getName().substring(4, 7));
 

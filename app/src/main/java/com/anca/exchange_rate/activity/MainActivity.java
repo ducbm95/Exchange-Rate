@@ -16,6 +16,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -25,6 +26,8 @@ import com.anca.exchange_rate.api.ERResponse;
 import com.anca.exchange_rate.api.ExchangeRate;
 import com.anca.exchange_rate.api.ExchangeRateService;
 import com.anca.exchange_rate.utils.ApiUtils;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,9 +49,13 @@ public class MainActivity extends AppCompatActivity
     private FloatingActionButton fab;
     private EditText edtValue;
 
+    private RecyclerView rv;
     private List<ExchangeRate> lstExRate = new ArrayList<>();
     private ExRateDataAdapter mAdapter;
     private double mValue;
+
+    private LinearLayout blankScreen;
+    private TextView tvAlert;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +68,13 @@ public class MainActivity extends AppCompatActivity
         btnChangeUnit = (FloatingActionButton) findViewById(R.id.btn_change_unit);
         fab = (FloatingActionButton) findViewById(R.id.fab);
         edtValue = (EditText) findViewById(R.id.edt_value);
+        edtValue.setSelection(edtValue.getText().length());
+        edtValue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                edtValue.setSelection(edtValue.getText().length());
+            }
+        });
 
         btnChangeUnit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,8 +86,14 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                loadExchangeRate();
-
+                boolean isConnectedInternet = ApiUtils.isInternetOn(getApplicationContext());
+                if (isConnectedInternet) {
+                    loadExchangeRate();
+                } else {
+                    rv.setVisibility(View.GONE);
+                    blankScreen.setVisibility(View.VISIBLE);
+                    tvAlert.setText("No internet connection.");
+                }
             }
         });
 
@@ -86,13 +106,16 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        RecyclerView rv = (RecyclerView) findViewById(R.id.recycler_view);
+        rv = (RecyclerView) findViewById(R.id.recycler_view);
         rv.setHasFixedSize(true);
 
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rv.setLayoutManager(llm);
         mAdapter = new ExRateDataAdapter(lstExRate, Double.valueOf(edtValue.getText().toString()));
         rv.setAdapter(mAdapter);
+
+        blankScreen = (LinearLayout) findViewById(R.id.blank_screen);
+        tvAlert = (TextView) findViewById(R.id.tv_alert);
     }
 
     @Override
@@ -136,25 +159,17 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_gallery) {
             Intent intent = new Intent(this, ExchangeActivity.class);
             startActivity(intent);
             overridePendingTransition(R.anim.open_anim, R.anim.no_change_anim);
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        } else if (id == R.id.nav_about) {
+            showAboutDialog();
         }
 
 //        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 //        drawer.closeDrawer(GravityCompat.START);
-        return true;
+        return false;
     }
 
     private void showChangeCurrencyUnitDialog() {
@@ -212,6 +227,8 @@ public class MainActivity extends AppCompatActivity
                 mAdapter.updateValue(Double.valueOf(edtValue.getText().toString()));
                 mAdapter.notifyDataSetChanged();
                 dialog.dismiss();
+                rv.setVisibility(View.VISIBLE);
+                blankScreen.setVisibility(View.GONE);
             }
 
             @Override
@@ -219,6 +236,15 @@ public class MainActivity extends AppCompatActivity
                 Log.d("RESPONSE", "response failure");
             }
         });
+    }
+
+    private void showAboutDialog() {
+        new MaterialDialog.Builder(this)
+                .title("Exchange Rate App")
+                .content("Version 1.0\nEmail ducbui279@gmail.com")
+                .positiveText("OK")
+                .icon(getResources().getDrawable(android.R.drawable.sym_def_app_icon))
+                .show();
     }
 
 }

@@ -3,6 +3,7 @@
     package="com.anca.exchange_rate">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -11,7 +12,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".TempActivity">
-
         </activity>
         <activity
             android:name=".activity.MainActivity"
@@ -19,7 +19,6 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -27,7 +26,6 @@
             android:name=".activity.ExchangeActivity"
             android:label="@string/title_activity_exchange"
             android:theme="@style/AppTheme.NoActionBar">
-
         </activity>
     </application>
 

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Exchange Rate</string>
     <string name="title_activity_main">Exchange Rate</string>
+    <string name="title_activity_exchange">Exchange Rate</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -45,5 +46,5 @@
         <item>ISK</item>
         <item>VND</item>
     </string-array>
-    <string name="title_activity_exchange">ExchangeActivity</string>
+
 </resources>
